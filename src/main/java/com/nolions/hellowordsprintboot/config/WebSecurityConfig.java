@@ -45,39 +45,52 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests() //請求權限設定请求权限配置
                 .anyRequest().authenticated() // 除了antMatchers中設定規則之外的情求都需要授權才可以存取
-                .withObjectPostProcessor(new ObjectPostProcessor<FilterSecurityInterceptor>() {
-                    @Override
-                    public <O extends FilterSecurityInterceptor> O postProcess(O object) {
-                        object.setSecurityMetadataSource(securityMetadataSource);
-                        object.setAccessDecisionManager(accessDecisionManager);
-                        return object;
-                    }
-                })
+                .withObjectPostProcessor(postProcessor())
                 .and()
                 .formLogin()
-                .failureHandler(new AuthenticationFailureHandler() {
-                    @Override
-                    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-                        System.out.println("login fail");
-                    }
-                })
-                .successHandler(new AuthenticationSuccessHandler() {
-                    @Override
-                    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-                        System.out.println("login success");
-                        response.setContentType("application/json;charset=utf-8");
-                        Map<String, Object> map = new HashMap<>();
-                        map.put("username", authentication.getName());
-
-                        ObjectMapper om = new ObjectMapper();
-                        PrintWriter out = response.getWriter();
-                        out.write(om.writeValueAsString(map));
-                        out.flush();
-                        out.close();
-                    }
-                })
+                .failureHandler(authFailureHandler())
+                .successHandler(authSuccessHandler())
                 .and()
                 .logout().logoutUrl("/logout")
-                .permitAll();
+                .permitAll()
+                .and().csrf().disable(); //禁用CSRF
+    }
+
+    private static AuthenticationSuccessHandler authSuccessHandler() {
+        return new AuthenticationSuccessHandler() {
+            @Override
+            public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+                System.out.println("login success");
+                response.setContentType("application/json;charset=utf-8");
+                Map<String, Object> map = new HashMap<>();
+                map.put("username", authentication.getName());
+
+                ObjectMapper om = new ObjectMapper();
+                PrintWriter out = response.getWriter();
+                out.write(om.writeValueAsString(map));
+                out.flush();
+                out.close();
+            }
+        };
+    }
+
+    private static AuthenticationFailureHandler authFailureHandler() {
+        return new AuthenticationFailureHandler() {
+            @Override
+            public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
+                System.out.println("login fail");
+            }
+        };
+    }
+
+    private ObjectPostProcessor<FilterSecurityInterceptor> postProcessor() {
+        return new ObjectPostProcessor<FilterSecurityInterceptor>() {
+            @Override
+            public <O extends FilterSecurityInterceptor> O postProcess(O object) {
+                object.setSecurityMetadataSource(securityMetadataSource);
+                object.setAccessDecisionManager(accessDecisionManager);
+                return object;
+            }
+        };
     }
 }

@@ -1,5 +1,6 @@
 package com.nolions.hellowordsprintboot.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nolions.hellowordsprintboot.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -19,12 +20,18 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CustomSecurityMetadataSource securityMetadataSource;
 
     @Autowired
     private CustomAccessDecisionManager accessDecisionManager;
@@ -41,6 +48,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .withObjectPostProcessor(new ObjectPostProcessor<FilterSecurityInterceptor>() {
                     @Override
                     public <O extends FilterSecurityInterceptor> O postProcess(O object) {
+                        object.setSecurityMetadataSource(securityMetadataSource);
                         object.setAccessDecisionManager(accessDecisionManager);
                         return object;
                     }
@@ -57,6 +65,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     @Override
                     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
                         System.out.println("login success");
+                        response.setContentType("application/json;charset=utf-8");
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("username", authentication.getName());
+
+                        ObjectMapper om = new ObjectMapper();
+                        PrintWriter out = response.getWriter();
+                        out.write(om.writeValueAsString(map));
+                        out.flush();
+                        out.close();
                     }
                 })
                 .and()

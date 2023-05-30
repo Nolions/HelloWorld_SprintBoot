@@ -31,9 +31,7 @@ public class UserController {
     @GetMapping("/")
     public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
         System.out.println(("----- selectAll method test ------"));
-        List<User> userList = userMapper.selectList(null);
-        System.out.println(("size:" + userList.size()));
-        userList.forEach(System.out::println);
+
         return String.format("Hello %s!", name);
 
     }

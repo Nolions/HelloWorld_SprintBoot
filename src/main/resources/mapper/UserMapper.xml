@@ -1,7 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.nolions.hellowordsprintboot.mapper.UserMapper">
-    <select id="loadUserByUsername" resultType="com.nolions.hellowordsprintboot.model.User">
+    <select id="loadUserByUsername" resultMap="lazyLoadRoles">
         select * from user WHERE username=#{username};
     </select>
+
+    <select id="getRolesByUserId" resultType="com.nolions.hellowordsprintboot.model.Role">
+        SELECT role.* FROM user_role,role where user_role.role_id=role.id AND user_role.user_id=#{id}
+    </select>
+
+    <resultMap id="BaseResultMap" type="com.nolions.hellowordsprintboot.model.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="age" property="age"/>
+        <result column="email" property="email"/>
+        <result column="enabled" property="enabled"/>
+        <result column="password" property="password"/>
+    </resultMap>
+    <resultMap id="lazyLoadRoles" type="com.nolions.hellowordsprintboot.model.User" extends="BaseResultMap">
+        <collection property="roles" select="getRolesByUserId" column="id"/>
+    </resultMap>
 </mapper>

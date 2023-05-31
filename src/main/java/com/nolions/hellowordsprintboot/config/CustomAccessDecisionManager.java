@@ -22,17 +22,20 @@ public class CustomAccessDecisionManager implements AccessDecisionManager {
 
     @Override
     public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes) throws AccessDeniedException, InsufficientAuthenticationException {
+        System.out.println("CustomAccessDecisionManager::decide()");
         FilterInvocation fi = (FilterInvocation) object;
         HttpServletRequest request = fi.getRequest();
         String requestPath = request.getServletPath();
         if (Arrays.asList(allowRouters).contains(requestPath)) {
             return;
         }
+        System.out.println("CustomAccessDecisionManager::decide(), user's authentication:" + authentication.getAuthorities());
 
         Iterator<ConfigAttribute> iterator = configAttributes.iterator();
         while (iterator.hasNext()) {
             ConfigAttribute ca = iterator.next();
             String needRole = ca.getAttribute();
+            System.out.println("CustomAccessDecisionManager::decide(), page need Role =" + needRole);
 
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
             for (GrantedAuthority authority : authorities) {

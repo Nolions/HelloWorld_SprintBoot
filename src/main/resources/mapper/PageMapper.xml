@@ -1,0 +1,16 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nolions.hellowordsprintboot.mapper.PageMapper">
+    <resultMap id="BaseResultMap" type="com.nolions.hellowordsprintboot.model.Page">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="path" property="path" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <collection property="roles" ofType="com.nolions.hellowordsprintboot.model.Role">
+            <id column="id" property="id"/>
+            <result column="role_name" property="name"/>
+        </collection>
+    </resultMap>
+
+    <select id="getAllPageRoles" resultMap="BaseResultMap">
+        SELECT page.*, role.id as role_id, role.name as role_name FROM page, page_role, role WHERE page.id = page_role.page_id and page_role.role_id=role.id
+    </select>
+</mapper>
